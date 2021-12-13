@@ -64,19 +64,19 @@
             <div class="row py-lg-5">
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#folderTab" type="button" role="tab" aria-controls="home" aria-selected="true">My Files</button>
+                        <button class="nav-link active" id="folder-tab" data-bs-toggle="tab" data-bs-target="#folderTab" type="button" role="tab" aria-controls="folderTab" aria-selected="true">My Files</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#sharedTab" type="button" role="tab" aria-controls="profile" aria-selected="false">Shared Files</button>
+                        <button class="nav-link" id="shared-tab" data-bs-toggle="tab" data-bs-target="#sharedTab" type="button" role="tab" aria-controls="sharedTab" aria-selected="false">Shared Files</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#accountTab" type="button" role="tab" aria-controls="contact" aria-selected="false">Account</button>
+                        <button class="nav-link" id="conaccounttact-tab" data-bs-toggle="tab" data-bs-target="#accountTab" type="button" role="tab" aria-controls="accountTab" aria-selected="false">Account</button>
                     </li>
                 </ul>
                 <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="folderTab" role="tabpanel" aria-labelledby="home-tab">...</div>
-                    <div class="tab-pane fade" id="sharedTab" role="tabpanel" aria-labelledby="profile-tab">...</div>
-                    <div class="tab-pane fade" id="accountTab" role="tabpanel" aria-labelledby="contact-tab">...</div>
+                    <div class="tab-pane fade show active" id="folderTab" role="tabpanel" aria-labelledby="folder-tab">...</div>
+                    <div class="tab-pane fade" id="sharedTab" role="tabpanel" aria-labelledby="shared-tab">...</div>
+                    <div class="tab-pane fade" id="accountTab" role="tabpanel" aria-labelledby="account-tab">...</div>
                 </div>
             </div>
         </section>          

@@ -107,7 +107,7 @@ private String function bytesToSize(required Numeric bytes) {
     </cfif>
 
     <cfsavecontent  variable="fileTable">
-        <cfinclude  template="partials/fileTable.cfm">
+        <cfinclude  template="partials/filetable.cfm">
     </cfsavecontent>
 
     <cfreturn fileTable>
