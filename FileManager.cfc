@@ -6,17 +6,17 @@
     <cfargument  name="userNo" required="yes" type="numeric">
 
     <cfif NOT 
-        structKeyExists(Session, "user") &&
-        structKeyExists(Session, "pass") &&
+        structKeyExists(Session, "Username") &&
+        structKeyExists(Session, "UserID") &&
         Session.UID == userNo
     >
         <cflocation  url="home.cfm" statuscode="502">
     </cfif>
 
     <cfquery name="validUser">
-        SELECT UserID FROM files 
-        WHERE FileID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer"> 
-        AND UserID = <cfqueryparam value=#userNo# cfsqltype="cf_sql_integer">;
+        SELECT USERID FROM FILES
+        WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer"> 
+        AND USERID = <cfqueryparam value=#userNo# cfsqltype="cf_sql_integer">;
     </cfquery>
 
     <cfif validUser.recordCount>
@@ -42,8 +42,8 @@
     <cfset output = generateSecretKey("AES")>
 
     <cfquery name="keyExists">
-        SELECT ShareKey FROM files 
-        WHERE ShareKey = <cfqueryparam value=#output# cfsqltype="cf_sql_char">;
+        SELECT SHAREKEY FROM FILES
+        WHERE SHAREKEY = <cfqueryparam value=#output# cfsqltype="cf_sql_char">;
     </cfquery>
 
     <cfif keyExists.recordCount>
@@ -69,13 +69,13 @@ private String function bytesToSize(required Numeric bytes) {
 <!--- Upload files to server, create DB references --->
 <cffunction  name="uploadFiles" access="remote">
     <cfif NOT 
-        structKeyExists(Session, "user") &&
-        structKeyExists(Session, "pass")
+        structKeyExists(Session, "Username") &&
+        structKeyExists(Session, "UserID")
     >
         <cflocation  url="home.cfm" statuscode="302">
     </cfif>
 
-    <cfset uploadPath = #GetDirectoryFromPath(GetCurrentTemplatePath())# & "uploads\#Session.user#\">
+    <cfset uploadPath = #GetDirectoryFromPath(GetCurrentTemplatePath())# & "uploads\#Session.Username#\">
     <cfif !directoryExists(uploadPath)>
         <cfdirectory action="create" directory=#uploadPath#>
     </cfif>
@@ -84,9 +84,9 @@ private String function bytesToSize(required Numeric bytes) {
 
     <cfloop array="#fileList#" item="file">
         <cfquery>
-            INSERT INTO files (UserID, FileName, FileSize, FilePath)
+            INSERT INTO FILES (USERID, FILENAME, FILESIZE, FILEPATH)
             VALUES (
-                <cfqueryparam value=#Session.UID# cfsqltype="cf_sql_integer">,
+                <cfqueryparam value=#Session.UserID# cfsqltype="cf_sql_integer">,
                 <cfqueryparam value=#file.clientFile# cfsqltype="cf_sql_varchar">,
                 <cfqueryparam value=#bytesToSize(file.fileSize)# cfsqltype="cf_sql_varchar">,
                 <cfqueryparam value=#uploadPath & file.serverFile# cfsqltype="cf_sql_varchar">
@@ -100,8 +100,8 @@ private String function bytesToSize(required Numeric bytes) {
 <cffunction  name="getFileTable" access="remote" returnformat="plain">
 
     <cfif NOT 
-        structKeyExists(Session, "user") &&
-        structKeyExists(Session, "pass")
+        structKeyExists(Session, "Username") &&
+        structKeyExists(Session, "UserID")
     >
         <cflocation  url="home.cfm" statuscode="302">
     </cfif>
@@ -118,8 +118,8 @@ private String function bytesToSize(required Numeric bytes) {
 <cffunction  name="getSharedTable" access="remote" returnformat="plain">
 
     <cfif NOT 
-        structKeyExists(Session, "user") &&
-        structKeyExists(Session, "pass")
+        structKeyExists(Session, "Username") &&
+        structKeyExists(Session, "UserID")
     >
         <cflocation  url="home.cfm" statuscode="302">
     </cfif>
@@ -142,12 +142,12 @@ private String function bytesToSize(required Numeric bytes) {
     </cfif>
 
     <cfquery name="fileData">
-        SELECT * FROM files 
-        WHERE FileID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
+        SELECT * FROM FILES
+        WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
     </cfquery>
     
-    <cfheader name="Content-Disposition" value="attachment; filename=#fileData.FileName#">
-    <cfcontent type=#FileGetMimeType(fileData.FilePath, false)# file=#fileData.FilePath#> 
+    <cfheader name="Content-Disposition" value="attachment; filename=#fileData.FILENAME#">
+    <cfcontent type=#FileGetMimeType(fileData.FILEPATH, false)# file=#fileData.FILEPATH#> 
 </cffunction>
 
 <!--- Assign shareKey to file and send back as plaintext response --->
@@ -162,9 +162,9 @@ private String function bytesToSize(required Numeric bytes) {
     <cfset shareKey = makeUniqueShareKey()>
 
     <cfquery>
-        UPDATE files 
-        SET ShareKey = <cfqueryparam value=#shareKey# cfsqltype="cf_sql_char">
-        WHERE FileID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
+        UPDATE FILES
+        SET SHAREKEY = <cfqueryparam value=#shareKey# cfsqltype="cf_sql_char">
+        WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
     </cfquery>
 
     <cfreturn shareKey>
@@ -175,8 +175,8 @@ private String function bytesToSize(required Numeric bytes) {
 <cffunction  name="accessFile" access="remote">
 
     <cfif NOT 
-        structKeyExists(Session, "user")&&
-        structKeyExists(Session, "pass")
+        structKeyExists(Session, "Username")&&
+        structKeyExists(Session, "UserID")
     >
         <cflocation  url="home.cfm" statuscode="302">
     </cfif>
@@ -184,26 +184,26 @@ private String function bytesToSize(required Numeric bytes) {
     <cfset req = getHTTPRequestData()>
 
     <cfquery name="alreadyAccessed">
-        SELECT FileID FROM files 
-        WHERE  UserID = #Session.UID# AND ShareKey = <cfqueryparam value=#req.content# cfsqltype="cf_sql_char">
+        SELECT FILEID FROM FILES
+        WHERE  USERID = #Session.UserID# AND SHAREKEY = <cfqueryparam value=#req.content# cfsqltype="cf_sql_char">
         LIMIT 1;
     </cfquery>
 
     <cfif !alreadyAccessed.recordcount>
         <cfquery name="fileData">
-            SELECT * FROM files 
-            WHERE ShareKey = <cfqueryparam value=#req.content# cfsqltype="cf_sql_char">
+            SELECT * FROM FILES
+            WHERE SHAREKEY = <cfqueryparam value=#req.content# cfsqltype="cf_sql_char">
             LIMIT 1;
         </cfquery>
 
         <cfquery>
-            INSERT INTO files (UserID, FileName, FileSize, FilePath, ShareKey)
+            INSERT INTO files (USERID, FILENAME, FILESIZE, FILEPATH, SHAREKEY)
             VALUES (
-                <cfqueryparam value=#Session.UID# cfsqltype="cf_sql_integer">,
-                <cfqueryparam value=#fileData.FileName# cfsqltype="cf_sql_varchar">,
-                <cfqueryparam value=#fileData.FileSize# cfsqltype="cf_sql_varchar">,
-                <cfqueryparam value=#fileData.FilePath# cfsqltype="cf_sql_varchar">,
-                <cfqueryparam value=#fileData.ShareKey# cfsqltype="cf_sql_varchar">
+                <cfqueryparam value=#Session.UserID# cfsqltype="cf_sql_integer">,
+                <cfqueryparam value=#fileData.FILENAME# cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value=#fileData.FILESIZE# cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value=#fileData.FILEPATH# cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value=#fileData.SHAREKEY# cfsqltype="cf_sql_varchar">
             );
         </cfquery>
 
@@ -220,36 +220,36 @@ private String function bytesToSize(required Numeric bytes) {
     </cfif>
 
     <cfquery name="getUserName">
-        SELECT Username FROM users 
+        SELECT USERNAME FROM USERS
         WHERE ID = <cfqueryparam value=#userNo# cfsqltype="cf_sql_integer">;
     </cfquery>
 
     <cfquery name="fileData">
-        SELECT * FROM files 
-        WHERE FileID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">
+        SELECT * FROM FILES
+        WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">
     </cfquery>
 
-    <cfif getIsFileOwner(getUserName.Username, fileData.FilePath)>
+    <cfif getIsFileOwner(getUserName.USERNAME, fileData.FILEPATH)>
 
-        <cffile  action="delete" file=#fileData.FilePath#>
+        <cffile  action="delete" file=#fileData.FILEPATH#>
 
         <cfif len(fileData.ShareKey)>
             <cfquery>
-                DELETE FROM files 
-                WHERE ShareKey = <cfqueryparam value=#fileData.ShareKey# cfsqltype="cf_sql_char">;
+                DELETE FROM FILES
+                WHERE SHAREKEY = <cfqueryparam value=#fileData.SHAREKEY# cfsqltype="cf_sql_char">;
             </cfquery>
         <cfelse>
             <cfquery>
-                DELETE FROM files 
-                WHERE FileID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
+                DELETE FROM FILES 
+                WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
             </cfquery>
         </cfif>
 
     <cfelse>
 
         <cfquery>
-            DELETE FROM files 
-            WHERE FileID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
+            DELETE FROM FILES
+            WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
         </cfquery>
     
     </cfif>
@@ -260,42 +260,42 @@ private String function bytesToSize(required Numeric bytes) {
 <cffunction  name="deleteAllUserFiles" >
 
     <cfif NOT 
-        structKeyExists(Session, "user") &&
-        structKeyExists(Session, "pass")
+        structKeyExists(Session, "Username") &&
+        structKeyExists(Session, "UserID")
     >
         <cflocation  url="home.cfm" statuscode="302">
     </cfif>
 
     <cfquery name = "shared">
-        SELECT * FROM files 
-        WHERE UserID = #Session.UID# AND ShareKey IS NOT NULL;
+        SELECT * FROM FILES 
+        WHERE USERID = #Session.UserID# AND SHAREKEY IS NOT NULL;
     </cfquery>
 
     <cfloop query="shared">
-        <cfif getIsFileOwner(Session.user, shared.FilePath)>
-            <cffile  action="delete" file=#shared.FilePath#>
+        <cfif getIsFileOwner(Session.Username, shared.FILEPATH)>
+            <cffile  action="delete" file=#shared.FILEPATH#>
             <cfquery>
-                DELETE FROM files 
-                WHERE ShareKey = <cfqueryparam value=#shared.ShareKey# cfsqltype="cf_sql_char">;
+                DELETE FROM FILES 
+                WHERE SHAREKEY = <cfqueryparam value=#shared.SHAREKEY# cfsqltype="cf_sql_char">;
             </cfquery>
         </cfif>
     </cfloop>
 
     <cfquery name="userFiles">
-        SELECT FilePath FROM files 
-        WHERE UserID = #Session.UID#
+        SELECT FILEPATH FROM FILES
+        WHERE USERID = #Session.UserID#
     </cfquery>
 
     <cfloop query="userFiles">
-        <cffile  action="delete" file=#userFiles.FilePath#>
+        <cffile  action="delete" file=#userFiles.FILEPATH#>
     </cfloop>
 
     <cfquery>
-        DELETE FROM files 
-        WHERE UserID = #Session.UID#
+        DELETE FROM FILES 
+        WHERE USERID = #Session.UserID#
     </cfquery>
 
-    <cflog  text="Delete all user files(#Session.user#): Success!">
+    <cflog  text="Delete all user files(#Session.Username#): Success!">
 
 </cffunction>
     
