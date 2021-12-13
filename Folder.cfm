@@ -70,7 +70,7 @@
                         <button class="nav-link" id="shared-tab" data-bs-toggle="tab" data-bs-target="#sharedTab" type="button" role="tab" aria-controls="sharedTab" aria-selected="false">Shared Files</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="conaccounttact-tab" data-bs-toggle="tab" data-bs-target="#accountTab" type="button" role="tab" aria-controls="accountTab" aria-selected="false">Account</button>
+                        <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#accountTab" type="button" role="tab" aria-controls="accountTab" aria-selected="false">Account</button>
                     </li>
                 </ul>
                 <div class="tab-content" id="myTabContent">
