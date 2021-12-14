@@ -17,7 +17,7 @@
 
         <cfquery name="getUser">
             SELECT * FROM USERS
-            WHERE USERNAME = #username#;
+            WHERE USERNAME = <cfqueryparam value=#username# cfsqltype="cf_sql_varchar">;
         </cfquery>
 
         <cfif getUser.recordCount>
@@ -43,7 +43,7 @@
             INSERT INTO USERS (USERNAME, HASH, SALT)
             VALUES (
                 <cfqueryparam value=#Form.Username# cfsqltype="cf_sql_varchar">,
-                <cfqueryparam value=#newHASH# cfsqltype="cf_sql_char">
+                <cfqueryparam value=#newHASH# cfsqltype="cf_sql_char">,
                 <cfqueryparam value=#passSALT# cfsqltype="cf_sql_char">
             );
         </cfquery>
@@ -60,20 +60,20 @@
         </cfquery>
 
         <cfif !userData.recordCount>
-            <cfreturn "Invalid login">
+            <cfreturn "false">
         </cfif>
 
         <cfset formHASH = hash(Form.Password, "SHA-512")>
         <cfset passHASH = hash(formHASH & userData.SALT, "SHA-512")>
 
         <cfif passHASH !== userData.HASH>
-            <cfreturn "Invalid login">
+            <cfreturn "false">
         </cfif>
 
         <cfset Session.Username = userData.USERNAME>
         <cfset Session.UserID = userData.ID>
 
-        <cflocation  url="Folder.cfm" statuscode="302">
+        <cfreturn "true">
 
     </cffunction>
 
@@ -105,8 +105,8 @@
             <cfquery>
                 UPDATE USERS 
                 SET HASH = <cfqueryparam value=#hash(newPass & newSalt, "SHA-512")# cfsqltype="cf_sql_char">, 
-                    Salt = <cfqueryparam value=#newSalt# cfsqltype="cf_sql_char">
-                WHERE HASH = <cfqueryparam value=#oldPass# cfsqltype="cf_sql_char">;
+                    SALT = <cfqueryparam value=#newSalt# cfsqltype="cf_sql_char">
+                WHERE USERID = <cfqueryparam value=#Session.UserID# cfsqltype="cf_sql_integer">;
             </cfquery>
 
             <cfreturn "true">

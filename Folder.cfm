@@ -2,8 +2,8 @@
 <html lang="en">
 
 <cfif NOT 
-    structKeyExists(Session, Username) &&
-    structKeyExists(Session, UserID)
+    structKeyExists(Session, "Username") &&
+    structKeyExists(Session, "UserID")
     >
         <cflocation url="Login.html" statuscode="302">
 </cfif>
@@ -17,7 +17,8 @@
     <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/album/">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    
+    <link href="style.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -83,7 +84,7 @@
 
     </main>
 
-    <footer class="text-muted py-5">
+    <footer class="text-muted">
         <div class="container">
             <p class="mb-1 text-center">&copy; Christopher Thomas</p>
         </div>
@@ -113,7 +114,7 @@
         }
 
         function getAccount() {
-            $.get(`${fmPath}method=getAccount`, function(res) {
+            $.get(`${amPath}method=getAccount`, function(res) {
                 const html = $.parseHTML(res);
                 $("#accountTab").html(html);
             });
@@ -124,19 +125,19 @@
             getSharedTable();
             getAccount();
 
-            $(document).on("dragover", "#folderTab", function(event) {
+            $(document).on("dragover", ".upload-drop-zone", function(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 $(this).addClass("drop");
             });
 
-            $(document).on("dragleave", "#folderTab", function(event) {
+            $(document).on("dragleave", ".upload-drop-zone", function(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 $(this).removeClass("drop");
             });
 
-            $(document).on("drop", "#folderTab", function(event) {
+            $(document).on("drop", ".upload-drop-zone", function(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 $(this).removeClass("drop");
@@ -163,6 +164,67 @@
         });
 
 
+        $("#folderTab").on("click", ".downloadButton", function() {
+            const fileNo = $(this).data("fileno");
+            window.open(fmPath + "method=downloadFile&fileNo=" + fileNo);
+        });
+
+        $("#folderTab").on("click", ".deleteButton", function() {
+            const tag = $(this);
+            const fileNo = tag.data("fileno");
+
+            $.get(fmPath + "method=deleteFile&fileNo=" + fileNo, function() {
+                tag.closest("tr").remove(); 
+            });
+        });
+
+        $("#folderTab").on("click", ".shareButton", function() {
+            const tag = $(this);
+            const fileNo = tag.data("fileno");
+
+            $.get(fmPath + "method=shareFile&fileNo=" + fileNo, function(shareKey) {
+                tag.closest("td").empty().text(shareKey);
+            });
+        });
+
+        $(document).on("click", "#checkcode", function() {
+
+            $.post(
+                fmPath + "method=accessFile", 
+                $("#shareKeyInput").val(), 
+                () => getSharedTable()
+            );
+
+        });
+
+
+        $("#accountTab").on("click", ".delete-account", function() {
+
+        if (confirm("Are you sure? You cannot undo this action.")) {
+
+            $.post(amPath + "method=deleteAccount", function() {
+                window.location.replace("home.cfm");
+            });
+
+        }
+
+    });
+
+    $("#accountTab").on("click", ".set-password", function() {
+        const formData = {
+            old: $("#oldPass").val(),
+            new: $("#newPass").val()
+        };
+
+        $.post(amPath + "method=setPassword", formData, function(res) {
+            if (res === "true") {
+                alert("Success!");
+            }
+            else {
+                alert("Failure!");
+            }
+        });
+    });
         
     </script>
       

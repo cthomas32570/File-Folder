@@ -1,4 +1,8 @@
 <div class="row">
+    <div class="row upload-drop-zone text-center mx-auto" id="drop-zone">
+        <p>Just drag and drop new files here</p>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -20,7 +24,7 @@
             <cfloop query="fileTable">
     
                 <cfif len(fileTable.SHAREKEY) == 0>
-                    <cfset shareButton = "<button class=""sharebutton"" data-toShare='{ ""fileNo"": #fileTable.FILEID# , ""userNo"": #fileTable.USERID# }'><i class=""fas fa-share""></i></button>">
+                    <cfset shareButton = '<button class="btn btn-sm btn-outline-secondary shareButton" data-fileno="#fileTable.FILEID#"></button>'>
                 <cfelse>
                     <cfset shareButton = #fileTable.SHAREKEY#>
                 </cfif>
@@ -31,8 +35,8 @@
                         <td>#fileTable.FILENAME#</td>
                         <td>#fileTable.FILESIZE#</td>
                         <td>#shareButton#</td>
-                        <td><button class="downloadbutton" data-toDownload='{ "fileNo": #fileTable.FILEID# , "userNo": #fileTable.USERID# }'><i class="fas fa-file-download"></i></button></td>
-                        <td><button class="deletebutton" data-toDelete='{ "fileNo": #fileTable.FILEID# , "userNo": #fileTable.USERID# }'><i class="fas fa-trash-alt"></i></button></td>
+                        <td><button class="btn btn-sm btn-outline-secondary downloadButton" data-fileno="#fileTable.FILEID#"></button></td>
+                        <td><button class="btn btn-sm btn-outline-secondary deleteButton" data-fileno="#fileTable.FILEID#"></button></td>
                     </tr>
                 </cfoutput>    
     

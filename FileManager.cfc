@@ -1,41 +1,27 @@
 <cfcomponent displayname="FileManager">
 
-<!--- Return true if user has access to the file requested --->
-<cffunction  name="validateUser" access="private" returnType="boolean">
-    <cfargument  name="fileNo" required="yes" type="numeric">
-    <cfargument  name="userNo" required="yes" type="numeric">
+<cfscript>
 
-    <cfif NOT 
-        structKeyExists(Session, "Username") &&
-        structKeyExists(Session, "UserID") &&
-        Session.UID == userNo
-    >
-        <cflocation  url="home.cfm" statuscode="502">
-    </cfif>
+    // Format input bytes into human readable string
+    private String function bytesToSize(required Numeric bytes) {
+        if (bytes == 1) { return "1 Byte" };
+    
+        sizes = ["Bytes", "KB", "MB", "GB"];
+        i = Floor(Log(bytes) / Log(1024));
+        return DecimalFormat(bytes / (1024^i)) & " " & sizes[i+1];
+    }
 
-    <cfquery name="validUser">
-        SELECT USERID FROM FILES
-        WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer"> 
-        AND USERID = <cfqueryparam value=#userNo# cfsqltype="cf_sql_integer">;
-    </cfquery>
+    // Return true if user is the one who uploaded the file
+    private Boolean function isFileOwner(required String filePath) {
+        if (Find("\uploads\#Session.Username#", filePath) != 0) {
+            return true;
+        }
 
-    <cfif validUser.recordCount>
-        <cfreturn true>
-    </cfif>
-        <cfreturn false>
-</cffunction>
+        return false;
 
-<!--- Return true if user is the one who uploaded the file --->
-<cffunction  name="getIsFileOwner" access="private" returnType="boolean">
-    <cfargument  name="userName" required="yes" type="string">
-    <cfargument  name="filePath" required="yes" type="string">
-
-    <cfif Find("\uploads\#userName#", filePath) NEQ 0>
-        <cfreturn true>
-    </cfif>
-
-    <cfreturn false>
-</cffunction>
+    }
+    
+</cfscript>
 
 <!--- Return a string not already in a ShareKey field in the file table --->
 <cffunction  name="makeUniqueShareKey" access="private" returnType="string">
@@ -53,27 +39,8 @@
     <cfreturn output>
 </cffunction>
 
-<!--- Format input bytes into human readable string --->
-<cfscript>
-
-private String function bytesToSize(required Numeric bytes) {
-    if (bytes == 1) { return "1 Byte" };
-
-    sizes = ["Bytes", "KB", "MB", "GB"];
-    i = Floor(Log(bytes) / Log(1024));
-    return DecimalFormat(bytes / (1024^i)) & " " & sizes[i+1];
-}
-
-</cfscript>
-
 <!--- Upload files to server, create DB references --->
 <cffunction  name="uploadFiles" access="remote">
-    <cfif NOT 
-        structKeyExists(Session, "Username") &&
-        structKeyExists(Session, "UserID")
-    >
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
 
     <cfset uploadPath = #GetDirectoryFromPath(GetCurrentTemplatePath())# & "uploads\#Session.Username#\">
     <cfif !directoryExists(uploadPath)>
@@ -99,13 +66,6 @@ private String function bytesToSize(required Numeric bytes) {
 <!--- Return HTML code for rendering the list of a user's files --->
 <cffunction  name="getFileTable" access="remote" returnformat="plain">
 
-    <cfif NOT 
-        structKeyExists(Session, "Username") &&
-        structKeyExists(Session, "UserID")
-    >
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
-
     <cfsavecontent  variable="fileTable">
         <cfinclude  template="partials/filetable.cfm">
     </cfsavecontent>
@@ -116,13 +76,6 @@ private String function bytesToSize(required Numeric bytes) {
 
 <!--- Return HTML code for rendering list of files shared with user --->
 <cffunction  name="getSharedTable" access="remote" returnformat="plain">
-
-    <cfif NOT 
-        structKeyExists(Session, "Username") &&
-        structKeyExists(Session, "UserID")
-    >
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
 
     <cfsavecontent  variable="sharedTable">
         <cfinclude  template="partials/sharedTable.cfm">
@@ -135,29 +88,22 @@ private String function bytesToSize(required Numeric bytes) {
 <!--- Send requested file as response --->
 <cffunction  name="downloadFile" access="remote">
     <cfargument  name="fileNo" required="yes" type="numeric">
-    <cfargument  name="userNo" required="yes" type="numeric">
-
-    <cfif !validateUser(fileNo, userNo)>
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
 
     <cfquery name="fileData">
         SELECT * FROM FILES
         WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">;
     </cfquery>
+
+    <cfif fileData.USERID === Session.UserID>
+        <cfheader name="Content-Disposition" value="attachment; filename=#fileData.FILENAME#">
+        <cfcontent type=#FileGetMimeType(fileData.FILEPATH, false)# file=#fileData.FILEPATH#> 
+    </cfif>
     
-    <cfheader name="Content-Disposition" value="attachment; filename=#fileData.FILENAME#">
-    <cfcontent type=#FileGetMimeType(fileData.FILEPATH, false)# file=#fileData.FILEPATH#> 
 </cffunction>
 
 <!--- Assign shareKey to file and send back as plaintext response --->
 <cffunction  name="shareFile" access="remote" returnformat="plain">
     <cfargument  name="fileNo" required="yes" type="numeric">
-    <cfargument  name="userNo" required="yes" type="numeric">
-
-    <cfif !validateUser(fileNo, userNo)>
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
 
     <cfset shareKey = makeUniqueShareKey()>
 
@@ -173,13 +119,6 @@ private String function bytesToSize(required Numeric bytes) {
 
 <!--- Give user access to file matching the sharekey --->
 <cffunction  name="accessFile" access="remote">
-
-    <cfif NOT 
-        structKeyExists(Session, "Username")&&
-        structKeyExists(Session, "UserID")
-    >
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
 
     <cfset req = getHTTPRequestData()>
 
@@ -197,7 +136,7 @@ private String function bytesToSize(required Numeric bytes) {
         </cfquery>
 
         <cfquery>
-            INSERT INTO files (USERID, FILENAME, FILESIZE, FILEPATH, SHAREKEY)
+            INSERT INTO FILES (USERID, FILENAME, FILESIZE, FILEPATH, SHAREKEY)
             VALUES (
                 <cfqueryparam value=#Session.UserID# cfsqltype="cf_sql_integer">,
                 <cfqueryparam value=#fileData.FILENAME# cfsqltype="cf_sql_varchar">,
@@ -210,26 +149,16 @@ private String function bytesToSize(required Numeric bytes) {
     </cfif>
 </cffunction>
 
-<!--- Remove file DB reference, and if user uploaded it, the file also --->
+<!--- Remove file DB reference, and if user uploaded it, the file itself --->
 <cffunction  name="deleteFile" access="remote">
     <cfargument  name="fileNo" required="yes" type="numeric">
-    <cfargument  name="userNo" required="yes" type="numeric">
-
-    <cfif !validateUser(fileNo, userNo)>
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
-
-    <cfquery name="getUserName">
-        SELECT USERNAME FROM USERS
-        WHERE ID = <cfqueryparam value=#userNo# cfsqltype="cf_sql_integer">;
-    </cfquery>
 
     <cfquery name="fileData">
         SELECT * FROM FILES
         WHERE FILEID = <cfqueryparam value=#fileNo# cfsqltype="cf_sql_integer">
     </cfquery>
 
-    <cfif getIsFileOwner(getUserName.USERNAME, fileData.FILEPATH)>
+    <cfif isFileOwner(fileData.FILEPATH)>
 
         <cffile  action="delete" file=#fileData.FILEPATH#>
 
@@ -259,26 +188,20 @@ private String function bytesToSize(required Numeric bytes) {
 <!--- Remove all files from a user's uploads directory and their DB references --->
 <cffunction  name="deleteAllUserFiles" >
 
-    <cfif NOT 
-        structKeyExists(Session, "Username") &&
-        structKeyExists(Session, "UserID")
-    >
-        <cflocation  url="home.cfm" statuscode="302">
-    </cfif>
-
     <cfquery name = "shared">
         SELECT * FROM FILES 
         WHERE USERID = #Session.UserID# AND SHAREKEY IS NOT NULL;
     </cfquery>
+    
+    <cfif isFileOwner(shared.FILEPATH)>
+        <cffile  action="delete" file=#shared.FILEPATH#>
+    </cfif>
 
     <cfloop query="shared">
-        <cfif getIsFileOwner(Session.Username, shared.FILEPATH)>
-            <cffile  action="delete" file=#shared.FILEPATH#>
             <cfquery>
                 DELETE FROM FILES 
                 WHERE SHAREKEY = <cfqueryparam value=#shared.SHAREKEY# cfsqltype="cf_sql_char">;
             </cfquery>
-        </cfif>
     </cfloop>
 
     <cfquery name="userFiles">

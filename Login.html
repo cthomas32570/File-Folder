@@ -155,8 +155,11 @@
                 formData,
                 function(res) {
 
-                    if (res) {
-                        alert(res);
+                    if (res === "true") {
+                        window.location.href = "./Folder.cfm";
+                    }
+                    else {
+                        alert("Username or password incorrect!");
                     }
                 }
             );

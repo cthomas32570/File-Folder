@@ -10,7 +10,7 @@
         <label for="newPass">New Password</label>
     </div>
       
-    <button class="w-100 btn btn-lg btn-primary set-password">Submit</button>
+    <button class="btn btn-lg btn-primary set-password">Submit</button>
 </div>
 
 <div class="container">

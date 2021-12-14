@@ -31,7 +31,7 @@
                             <td>#sharedTable.FILENAME#</td>
                             <td>#sharedTable.FILESIZE#</td>
                             <td>#spanExcluding(fileOwner, "\")#</td>
-                            <td><button class="downloadbutton" data-toDownload='{ "fileNo": #sharedTable.FILEID# , "userNo": #sharedTable.USERID# }'><i class="fas fa-file-download"></i></button></td>
+                            <td><button class="btn btn-sm btn-outline-secondary downloadButton" data-fileNo="#sharedTable.FILEID#"></button></td>
                         </tr>
                     </cfoutput>        
                 </cfif>
