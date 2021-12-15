@@ -12,7 +12,6 @@
                 <th scope="col">Filename</th>
                 <th scope="col">Size</th>
                 <th scope="col">Shared by</th>
-                <th scope="col">Download</th>
             </tr>
         </thead>
         <tbody>
@@ -31,7 +30,6 @@
                             <td>#sharedTable.FILENAME#</td>
                             <td>#sharedTable.FILESIZE#</td>
                             <td>#spanExcluding(fileOwner, "\")#</td>
-                            <td><button class="btn btn-sm btn-outline-secondary downloadButton" data-fileNo="#sharedTable.FILEID#"></button></td>
                         </tr>
                     </cfoutput>        
                 </cfif>

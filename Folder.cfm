@@ -29,12 +29,12 @@
             <div class="row">
                 <div class="col-sm-8 col-md-7 py-4">
                     <h4 class="text-white">About</h4>
-                    <p class="text-muted">Placeholder text!</p>
+                    <p class="text-muted">I made this website to show off some of the things I've learned in the past year. Thanks for stopping by!</p>
                 </div>
                 <div class="col-sm-4 offset-md-1 py-4">
                     <h4 class="text-white">Links</h4>
                     <ul class="list-unstyled">
-                        <li><a href="./home.html" class="text-white">Home</a></li>
+                        <li><a href="http://shenanigans.digital/home.html" class="text-white">Home</a></li>
                         <li><a href="https://github.com/cthomas32570" class="text-white">GitHub</a></li>
                         <li><a href="#" class="text-white">Email me</a></li>
                     </ul>

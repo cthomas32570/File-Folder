@@ -69,7 +69,15 @@
             );
         </cfquery>
 
-        <cfreturn "Success! You can now sign in.">
+        <cfquery name="userData">
+            SELECT * FROM USERS 
+            WHERE USERNAME = <cfqueryparam value=#Form.Username# cfsqltype="cf_sql_varchar">;
+        </cfquery>
+
+        <cfset Session.Username = userData.USERNAME>
+        <cfset Session.UserID = userData.ID>
+
+        <cfreturn "true">
 
     </cffunction>
 
