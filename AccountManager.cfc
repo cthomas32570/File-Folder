@@ -10,6 +10,19 @@
             return false;
 
         }
+
+        private boolean function isAllowedUsername(required String username) {
+
+            local nameCheck = reMatch("^[A-Za-z][A-Za-z0-9_]{7,19}$", username);
+
+            return !ArrayIsEmpty(nameCheck);
+        }
+
+        private boolean function isAllowedPassword(required String password) {
+
+            return Len(password) > 7;
+        }
+
     </cfscript>
 
     <cffunction  name="userExists" access="private">
@@ -29,6 +42,14 @@
     </cffunction>
 
     <cffunction  name="registerNewUser" access="remote" returnformat="plain">
+
+        <cfif !isAllowedUsername(Form.Username)>
+            <cfreturn "Your username must begin with a letter, be between 7 and 20 characters, and only contain letters, numbers, and underscores.">
+        </cfif>
+
+        <cfif !isAllowedPassword(Form.Password)>
+            <cfreturn "Your password must be at least 8 characters.">
+        </cfif>
 
         <cfif userExists(Form.Username)>
             <cfreturn "This name is already in use. Try another.">
