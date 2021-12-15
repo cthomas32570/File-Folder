@@ -210,10 +210,10 @@
 
     });
 
-    $("#accountTab").on("click", ".set-password", function() {
+    $("#accountTab").on("click", ".submitNewPassword", function() {
         const formData = {
-            old: $("#oldPass").val(),
-            new: $("#newPass").val()
+            old: $("#currentPassword").val(),
+            new: $("#newPassword").val()
         };
 
         $.post(amPath + "method=setPassword", formData, function(res) {
@@ -224,6 +224,14 @@
                 alert("Failure!");
             }
         });
+    });
+
+    $("#accountTab").on("click", ".sign-out", function() {
+
+        $.post(amPath + "method=signOut", function() {
+            window.location.href = "./Login.html";
+        });
+
     });
         
     </script>
